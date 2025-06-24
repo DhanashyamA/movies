@@ -5,30 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Movie Search App</title>
     <link rel="stylesheet" href="styles.css" />
+
+    <!-- Font Awesome for star icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <!-- Material Symbols for other icons -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <header>
-      <h1>🎥 Movie Search App</h1>
+      <h1><span class="material-symbols-outlined">local_movies</span> Movie Search App</h1>
       <p>Search for movies and save your favorites!</p>
     </header>
+
     <main>
       <section class="search-section">
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Search for a movie..."
-        />
+        <input type="text" id="searchInput" placeholder="Search for a movie..." />
         <button id="searchBtn">Search</button>
       </section>
+
       <section id="movieResults" class="movies"></section>
+
       <section class="favorites-section">
         <h2>Favorites</h2>
+        <div class="filter-container">
+          <button id="filterToggle">
+            <span class="material-symbols-outlined">filter_list</span> Filter
+          </button>
+          <div id="filterOptions" class="hidden">
+            <button onclick="sortFavorites('asc')">
+              <span class="material-symbols-outlined">arrow_upward</span> Ascending
+            </button>
+            <button onclick="sortFavorites('desc')">
+              <span class="material-symbols-outlined">arrow_downward</span> Descending
+            </button>
+          </div>
+        </div>
         <div id="favorites" class="movies"></div>
       </section>
     </main>
-    <footer>
-      <p>Made with ❤️ by You</p>
-    </footer>
+
+    <footer></footer>
     <script src="script.js"></script>
   </body>
 </html>
+
