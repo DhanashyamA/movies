@@ -1,4 +1,4 @@
-const API_URL = "http://www.omdbapi.com/?i=tt3896198&apikey=594c2454"; // Replace YOUR_API_KEY with your OMDB API key
+const API_URL = "http://www.omdbapi.com/?apikey=594c2454";
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
 const movieResults = document.getElementById("movieResults");
@@ -10,6 +10,8 @@ let favoriteMovies = JSON.parse(localStorage.getItem("favorites")) || [];
 // Display Favorites on Page Load
 document.addEventListener("DOMContentLoaded", () => {
   displayFavorites();
+  const lastSearch = sessionStorage.getItem("lastSearch");
+  if (lastSearch) fetchMovies(lastSearch);
 });
 
 // Fetch Movies from API
@@ -34,15 +36,18 @@ function displayMovies(movies) {
   movies.forEach((movie) => {
     const movieCard = document.createElement("div");
     movieCard.classList.add("movie-card");
+
+    const isFavorite = favoriteMovies.some((fav) => fav.id === movie.imdbID);
+
     movieCard.innerHTML = `
-      <img src="${
-        movie.Poster !== "N/A" ? movie.Poster : "placeholder.jpg"
-      }" alt="${movie.Title}">
+      <img src="${movie.Poster !== "N/A" ? movie.Poster : "placeholder.jpg"}" alt="${movie.Title}">
       <h3>${movie.Title}</h3>
       <p>${movie.Year}</p>
-      <button onclick="addToFavorites('${movie.imdbID}', '${movie.Title.replace("'", "\\" + "'")}', '${
-      movie.Poster
-    }', '${movie.Year}')">Add to Favorites</button>
+      ${
+        isFavorite
+          ? `<button class="added" disabled>✅ Added to Favorites</button>`
+          : `<button onclick="addToFavorites('${movie.imdbID}', '${movie.Title.replace(/'/g, "\\'")}', '${movie.Poster}', '${movie.Year}')">Add to Favorites</button>`
+      }
     `;
     movieResults.appendChild(movieCard);
   });
@@ -54,6 +59,9 @@ function addToFavorites(id, title, poster, year) {
     favoriteMovies.push({ id, title, poster, year });
     localStorage.setItem("favorites", JSON.stringify(favoriteMovies));
     displayFavorites();
+
+    const currentSearch = sessionStorage.getItem("lastSearch");
+    if (currentSearch) fetchMovies(currentSearch);
   }
 }
 
@@ -64,12 +72,10 @@ function displayFavorites() {
     const favoriteCard = document.createElement("div");
     favoriteCard.classList.add("movie-card");
     favoriteCard.innerHTML = `
-      <img src="${
-        movie.poster !== "N/A" ? movie.poster : "placeholder.jpg"
-      }" alt="${movie.title}">
+      <img src="${movie.poster !== "N/A" ? movie.poster : "placeholder.jpg"}" alt="${movie.title}">
       <h3>${movie.title}</h3>
       <p>${movie.year}</p>
-      <button onclick="removeFromFavorites('${movie.id}')">Remove</button>
+      <button class="remove" onclick="removeFromFavorites('${movie.id}')">Remove</button>
     `;
     favorites.appendChild(favoriteCard);
   });
@@ -80,6 +86,9 @@ function removeFromFavorites(id) {
   favoriteMovies = favoriteMovies.filter((movie) => movie.id !== id);
   localStorage.setItem("favorites", JSON.stringify(favoriteMovies));
   displayFavorites();
+
+  const currentSearch = sessionStorage.getItem("lastSearch");
+  if (currentSearch) fetchMovies(currentSearch);
 }
 
 // Event Listener for Search Button
