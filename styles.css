@@ -89,9 +89,27 @@ main {
   background-color: #45a049;
 }
 
+/* ✅ Style for "Added to Favorites" */
+.movie-card button.added {
+  background-color: #2196f3;
+  cursor: default;
+}
+
+.movie-card button.added:hover {
+  background-color: #2196f3;
+}
+
+/* 🔴 Style for Remove Button */
+.movie-card button.remove {
+  background-color: #f44336;
+}
+
+.movie-card button.remove:hover {
+  background-color: #d32f2f;
+}
+
 footer {
   text-align: center;
   padding: 1rem;
-  background-color: #4caf50;
   color: white;
 }
