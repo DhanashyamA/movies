@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Movie Search App</title>
+
     <link rel="stylesheet" href="styles.css" />
 
     <!-- Font Awesome for star icons -->
@@ -12,21 +13,29 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     />
 
-    <!-- Material Symbols for other icons -->
+    <!-- Material Symbols -->
     <link
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
       rel="stylesheet"
     />
   </head>
+
   <body>
     <header>
-      <h1><span class="material-symbols-outlined">local_movies</span> Movie Search App</h1>
+      <h1>
+        <span class="material-symbols-outlined">local_movies</span>
+        Movie Search App
+      </h1>
       <p>Search for movies and save your favorites!</p>
     </header>
 
     <main>
       <section class="search-section">
-        <input type="text" id="searchInput" placeholder="Search for a movie..." />
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search for a movie..."
+        />
         <button id="searchBtn">Search</button>
       </section>
 
@@ -34,25 +43,173 @@
 
       <section class="favorites-section">
         <h2>Favorites</h2>
+
         <div class="filter-container">
           <button id="filterToggle">
             <span class="material-symbols-outlined">filter_list</span> Filter
           </button>
+
           <div id="filterOptions" class="hidden">
             <button onclick="sortFavorites('asc')">
-              <span class="material-symbols-outlined">arrow_upward</span> Ascending
+              <span class="material-symbols-outlined">arrow_upward</span>
+              Ascending
             </button>
             <button onclick="sortFavorites('desc')">
-              <span class="material-symbols-outlined">arrow_downward</span> Descending
+              <span class="material-symbols-outlined">arrow_downward</span>
+              Descending
             </button>
           </div>
         </div>
+
         <div id="favorites" class="movies"></div>
       </section>
     </main>
 
     <footer></footer>
-    <script src="script.js"></script>
+
+    <!-- ✅ JAVASCRIPT STARTS HERE -->
+    <script>
+      const API_URL = "https://www.omdbapi.com/?apikey=594c2454";
+
+      const searchInput = document.getElementById("searchInput");
+      const searchBtn = document.getElementById("searchBtn");
+      const movieResults = document.getElementById("movieResults");
+      const favorites = document.getElementById("favorites");
+      const filterToggle = document.getElementById("filterToggle");
+      const filterOptions = document.getElementById("filterOptions");
+
+      let favoriteMovies =
+        JSON.parse(localStorage.getItem("favorites")) || [];
+
+      document.addEventListener("DOMContentLoaded", () => {
+        displayFavorites();
+        const lastSearch = sessionStorage.getItem("lastSearch");
+        if (lastSearch) fetchMovies(lastSearch);
+      });
+
+      searchBtn.addEventListener("click", () => {
+        const query = searchInput.value.trim();
+        if (query) {
+          sessionStorage.setItem("lastSearch", query);
+          fetchMovies(query);
+        }
+      });
+
+      filterToggle.addEventListener("click", () => {
+        filterOptions.classList.toggle("hidden");
+      });
+
+      async function fetchMovies(query) {
+        try {
+          const response = await fetch(`${API_URL}&s=${query}`);
+          const data = await response.json();
+
+          if (data.Response === "True") {
+            displayMovies(data.Search);
+          } else {
+            movieResults.innerHTML = `<p>No movies found for "${query}".</p>`;
+          }
+        } catch (error) {
+          console.error("Error fetching movies:", error);
+        }
+      }
+
+      function displayMovies(movies) {
+        movieResults.innerHTML = "";
+
+        movies.forEach((movie) => {
+          const movieCard = document.createElement("div");
+          movieCard.classList.add("movie-card");
+
+          const isFavorite = favoriteMovies.some(
+            (fav) => fav.id === movie.imdbID
+          );
+
+          movieCard.innerHTML = `
+            <img src="${
+              movie.Poster !== "N/A" ? movie.Poster : "placeholder.jpg"
+            }" alt="${movie.Title}">
+            <h3>${movie.Title}</h3>
+            <p>${movie.Year}</p>
+            ${
+              isFavorite
+                ? `<button class="added" disabled>✅ Added</button>`
+                : `<button onclick="addToFavorites(
+                    '${movie.imdbID}',
+                    '${movie.Title.replace(/'/g, "\\'")}',
+                    '${movie.Poster}',
+                    '${movie.Year}'
+                  )">Add to Favorites</button>`
+            }
+          `;
+
+          movieResults.appendChild(movieCard);
+        });
+      }
+
+      function addToFavorites(id, title, poster, year) {
+        if (!favoriteMovies.some((movie) => movie.id === id)) {
+          favoriteMovies.push({ id, title, poster, year, rating: 0 });
+          localStorage.setItem(
+            "favorites",
+            JSON.stringify(favoriteMovies)
+          );
+          displayFavorites();
+        }
+      }
+
+      function displayFavorites() {
+        favorites.innerHTML = "";
+
+        favoriteMovies.forEach((movie, index) => {
+          const card = document.createElement("div");
+          card.classList.add("movie-card");
+
+          let starsHtml = "";
+          for (let i = 1; i <= 5; i++) {
+            starsHtml += `<i class="star fa-star ${
+              movie.rating >= i ? "fa-solid" : "fa-regular"
+            }" onclick="rateMovie(${index}, ${i})"></i>`;
+          }
+
+          card.innerHTML = `
+            <img src="${
+              movie.poster !== "N/A" ? movie.poster : "placeholder.jpg"
+            }">
+            <h3>${movie.title}</h3>
+            <p>${movie.year}</p>
+            <div class="stars">${starsHtml}</div>
+            <p>Rating: ${movie.rating}/5</p>
+            <button onclick="removeFromFavorites('${movie.id}')">Remove</button>
+          `;
+
+          favorites.appendChild(card);
+        });
+      }
+
+      function rateMovie(index, rating) {
+        favoriteMovies[index].rating = rating;
+        localStorage.setItem("favorites", JSON.stringify(favoriteMovies));
+        displayFavorites();
+      }
+
+      function removeFromFavorites(id) {
+        favoriteMovies = favoriteMovies.filter(
+          (movie) => movie.id !== id
+        );
+        localStorage.setItem("favorites", JSON.stringify(favoriteMovies));
+        displayFavorites();
+      }
+
+      function sortFavorites(order) {
+        favoriteMovies.sort((a, b) =>
+          order === "asc" ? a.rating - b.rating : b.rating - a.rating
+        );
+        displayFavorites();
+      }
+    </script>
+    <!-- ✅ JAVASCRIPT ENDS HERE -->
   </body>
 </html>
+
 
